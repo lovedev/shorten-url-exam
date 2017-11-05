@@ -1,0 +1,204 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>MiniUrl</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css"/>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+  <script src="./plugin/doT.js"></script>
+</head>
+<style>
+  .wrapper {
+    background:#333;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    display: -webkit-flex;
+    -webkit-align-item;
+    center;
+    -webkit-justify-content: center;
+  }
+
+  .font12{
+    font-size:12px;
+  }
+
+  .kbtn{
+    background:#fbe105;
+    font-size:12px;
+    color:#000;
+    font-weight: bold;
+  }
+
+  .form-control-no-border:focus {
+    border-color:#ccc;
+    outline: 0;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+  }
+
+  button:active{
+    outline:none !important;
+  }
+
+
+</style>
+<body>
+
+<div class="wrapper">
+  <div class="container">
+
+    <!-- form -->
+    <div class="row">
+
+      <div class="col-md-3"></div>
+
+      <div class="col-md-6">
+        <div class="input-group input-group-lg">
+          <input type="text" class="form-control form-control-no-border font12" id="shorten-url-input"
+                 placeholder="URL을 입력해 주세요" style="font-size:1em" />
+          <span class="input-group-btn">
+            <button class="btn btn-secondary form-control-no-border btn-flat kbtn"
+                    onclick="makeShrotenUrl()" type="button" style="font-size:14px">SHORTEN</button>
+          </span>
+        </div>
+      </div>
+      <div class="col-md-3"></div>
+
+    </div>
+    <!-- //form -->
+
+    <!-- result -->
+    <div class="row" style="margin-top: 10px">
+
+      <div class="col-md-3"></div>
+      <div class="col-md-6" style="color: #fbe105">
+        <div id="shorten-url-result"></div>
+      </div>
+      <div class="col-md-3"></div>
+
+    </div>
+    <!-- //result -->
+
+  </div>
+</div>
+
+<script type="text/template" id="shorten-url-result-template">
+  //<![CDATA[
+  <div style="padding-left:3px">
+    <h5><?= it.url ?>
+      <span class="badge badge-default" style="cursor: pointer" onclick="copyUrl()">copy</span>
+      <span></span>
+      <span class="badge badge-danger" style="cursor: pointer; background:#69b81a" onclick="goUrl()">move</span>
+    </h5>
+  </div>
+  //]]>
+</script>
+<script>
+  //<![CDATA[
+
+  var resultUrl = "";
+  var templateStr = $("#shorten-url-result-template").text().trim();
+  templateStr = templateStr.substring(11, templateStr.length - 5);
+
+  doT.templateSettings = {
+    evaluate: /\<\?([\s\S]+?)\?\>/g,
+    interpolate: /\<\?=([\s\S]+?)\?\>/g,
+    varname: 'it',
+    strip: true
+  };
+
+
+  var shortenUrlResultTemplate = doT.template(templateStr);
+
+  //enter key code
+  var ENTER_KEY = 13;
+
+  $(function(){
+
+    //add event at input box
+    $("#shorten-url-input").keydown(function(evt){
+      var keyCode = evt.keyCode;
+      switch (keyCode){
+        case ENTER_KEY :
+          makeShrotenUrl();
+          break;
+      }
+    });
+
+  });
+
+  //make shorten url
+  function makeShrotenUrl() {
+    var url = $("#shorten-url-input").val();
+    if(url.length < 3){
+      alert("URL을 완성해 주세요");
+      return;
+    }
+    if(!url.startsWith("http://") && !url.startsWith("https://")){
+      url = "http://" + url;
+    }
+    sendShortableUrl(url);
+  }
+
+  //call api
+  function sendShortableUrl(url) {
+    $.ajax({
+      type : 'POST',
+      url : '/shorten-url/make',
+      contentType: "application/json; charset=utf-8",
+      traditional: true,
+      data : JSON.stringify({
+        'url' : url,
+      }),
+      success : function(result) {
+        renderShortenUrlResult(result);
+      },
+      error: function(request, status, error) {
+        alert("요청한 URL 형식이 잘못되었습니다");
+        clear();
+      }
+    });
+  }
+
+  //render result
+  function renderShortenUrlResult(url) {
+    $("#shorten-url-result").html(shortenUrlResultTemplate({"url":url}));
+    resultUrl = url;
+  }
+
+  //copy clipboard (html5 spec)
+  function copyUrl() {
+    function handler (event){
+      event.clipboardData.setData('text/plain', resultUrl);
+      event.preventDefault();
+      document.removeEventListener('copy', handler, true);
+    }
+
+    document.addEventListener('copy', handler, true);
+    document.execCommand('copy');
+    alert("URL이 복사되었습니다")
+  }
+
+  //go location in new window
+  function goUrl() {
+    window.open(resultUrl, "_blank");
+  }
+
+  function clear() {
+    $("#shorten-url-input").val("");
+  }
+
+  //]]>
+</script>
+
+</body>
+</html>

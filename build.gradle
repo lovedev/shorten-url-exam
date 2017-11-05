@@ -1,0 +1,51 @@
+group 'com.lovedv'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.8.RELEASE")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+
+jar {
+    baseName = 'shorten-url'
+    version =  '0.1.0'
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    compile("org.springframework.boot:spring-boot-starter-thymeleaf")
+    compile("org.springframework.boot:spring-boot-devtools")
+    compile('org.springframework.boot:spring-boot-starter-data-jpa')
+    compile('org.springframework.boot:spring-boot-starter-aop')
+    compile('com.h2database:h2')
+
+    //logger
+    compile('com.googlecode.log4jdbc:log4jdbc:1.2')
+    compile('com.google.guava:guava:18.0')
+
+    compile group: 'commons-validator', name: 'commons-validator', version: '1.4.0'
+
+    compile('org.apache.httpcomponents:httpclient:4.5.2')
+    compile('org.projectlombok:lombok:1.16.10')
+
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+    testCompile('pl.pragmatists:JUnitParams:1.1.0')
+    testCompile("junit:junit")
+}
